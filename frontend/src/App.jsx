@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AlertTriangle,
   Building2,
@@ -64,6 +64,7 @@ function useIpDetails() {
   const [status, setStatus] = useState({ label: 'Loading…', tone: 'ok' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const hasFetchedOnce = useRef(false);
 
   const fetchDetails = useCallback(async () => {
     setLoading(true);
@@ -93,6 +94,8 @@ function useIpDetails() {
   }, []);
 
   useEffect(() => {
+    if (hasFetchedOnce.current) return; // prevents double-fetch in React.StrictMode
+    hasFetchedOnce.current = true;
     fetchDetails();
   }, [fetchDetails]);
 
