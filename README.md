@@ -2,7 +2,7 @@
 
 ![Screenshot](./screenshot.jpg)
 
-A full-stack web app that surfaces your public IP, ISP, ASN, timezone, and approximate location via the [ipstack API](https://api.ipstack.com/). The backend proxies requests to protect your secret key; the frontend delivers a polished, themeable UI.
+A full-stack web app that surfaces your public IP, ISP, ASN, timezone, and approximate location via the [ipstack API](https://ipstack.com/). The backend proxies requests to protect your secret key; the frontend delivers a polished, themeable UI.
 
 ## Get Started
 
