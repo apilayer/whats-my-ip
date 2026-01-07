@@ -1,46 +1,138 @@
-# WhatsMyIp
+# What’s My IP – Full-Stack IP Lookup
 
-A full-stack IP lookup tool that combines a secured backend proxy for ipstack with a polished React frontend. Use this document as the entry point for local setup, deployment guidance, and documentation links.
+![Screenshot](./screenshot.jpg)
 
-## Project Layout
+A full-stack web app that surfaces your public IP, ISP, ASN, timezone, and approximate location via the [ipstack API](https://api.ipstack.com/). The backend proxies requests to protect your secret key; the frontend delivers a polished, themeable UI.
+
+## Get Started
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/apilayer/whats-my-ip.git
+```
+
+### 2. Install dependencies
+
+Install dependencies separately for backend and frontend.
+
+**Backend**
+
+```bash
+cd whats-my-ip/backend
+npm install
+```
+
+**Frontend**
+
+```bash
+cd whats-my-ip/frontend
+npm install
+```
+
+### 3. Add your API key
+
+1. Create a `.env` file inside `backend/`.
+2. Add the following variables:
+   ```
+   IPSTACK_API_KEY=your_ipstack_key
+   PORT=3001                # optional, defaults to 3001
+   ```
+3. Sign up for ipstack and ensure your plan includes **Connection** and **Time Zone** modules (available from the Starter plan).
+
+### 4. Start the servers
+
+**Backend** (Express proxy)
+
+```bash
+cd backend
+npm run dev   # or npm start
+```
+
+**Frontend** (Vite + React)
+
+```bash
+cd frontend
+npm run dev
+```
+
+The frontend expects the backend to be reachable at `/api`. When developing locally, set up a Vite proxy (already configured) or adjust `VITE_LOOKUP_PATH` at build time if you change the backend route.
+
+## Features Implemented
+
+### IP Lookup & Resilience
+
+- Proxy-protected access to ipstack `/lookup` to keep the API key server-side.
+- Sample endpoint (`/lookup/sample`) for offline/demo mode.
+- Error handling surfaces upstream failures and preserves UX with safe defaults.
+
+### Frontend Experience
+
+- Light/dark theme toggle with system preference + persistence.
+- Copy/share IP actions with feedback states.
+- Connection detail cards for ISP, ASN, country, region, city, ZIP, timezone, and coordinates.
+- OpenStreetMap embed with graceful fallbacks and loading overlays.
+- Responsive layout, hover states, and polished cards.
+
+### Backend Behaviors
+
+- Health probe at `/health`.
+- Timeout, upstream error propagation, and input normalization for lookup requests.
+
+## Tech Stack
+
+### Backend
+
+- **Node.js** + **Express**
+- **axios** for upstream requests
+- **dotenv** for environment configuration
+
+### Frontend
+
+- **React 18** with Vite
+- **Tailwind CSS 3** for styling
+- **lucide-react** for icons
+
+## API Endpoints (Backend)
 
 ```
-WhatsMyIp/
-├── backend/     # Express proxy to ipstack
-└── frontend/    # React + Tailwind UI
+GET /health
+GET /lookup?ip={ip|check}&[ipstack_query_params]
+GET /lookup/sample
 ```
 
-- [`backend/README.md`](backend/README.md) – Setup instructions, environment configuration, and available proxy endpoints.
-- [`frontend/README.md`](frontend/README.md) – UI architecture, data flow, theming, and development workflow.
+- `/lookup` defaults to `ip=check`, letting ipstack detect the caller IP.
+- Returns ipstack JSON or a 502-wrapped error when upstream fails.
+- `/lookup/sample` serves a static fixture for frontend/demo use.
 
-## Getting Started
+## Usage Flow
 
-1. **Install dependencies** in both workspaces:
-   ```bash
-   cd backend && npm install
-   cd ../frontend && npm install
-   ```
-2. **Configure ipstack** in `backend/.env` using the sample file for guidance.
-3. **Run the backend** (default port: 3001):
-   ```bash
-   npm run dev
-   ```
-4. **Run the frontend** (default port: 5173) in a separate terminal:
-   ```bash
-   npm run dev
-   ```
-5. Visit the frontend URL. Requests to `/api/lookup` will be proxied to the backend.
+1. Frontend calls `/api${VITE_LOOKUP_PATH || '/lookup'}`.
+2. Backend proxies to ipstack with your `IPSTACK_API_KEY`.
+3. Response is normalized (IP, version, ISP, ASN, geo, timezone).
+4. UI renders summary, detail rows, and map; users can copy/share IP and open the map.
 
-> **Plan requirement:** Both services rely on ipstack's **Connection** and **Time Zone** modules, which are included starting with the Starter plan.
+## Key Components
 
-## Deployment Notes
+### Frontend
 
-- Ensure the backend is deployed with the required ipstack API key and appropriate security controls; the frontend never exposes the key directly.
-- Configure the frontend's `VITE_LOOKUP_PATH` at build time if your proxy uses a non-default route.
-- Consider deploying both services behind a reverse proxy that routes `/api` to the backend and static assets to the frontend build output.
+- **App.jsx** – Fetches IP details, manages theme, renders summary card, detail grid, map panel, and actions.
+- **main.jsx** – React/Vite bootstrap.
+- **styles.css** – Tailwind layers and theme transitions.
 
-## Additional Resources
+### Backend
 
-- ipstack docs: https://ipstack.com/documentation
-- Tailwind CSS: https://tailwindcss.com/docs
-- Vite: https://vitejs.dev/guide/
+- **src/server.js** – Express server with `/lookup`, `/lookup/sample`, and `/health` routes, plus error handling and timeouts.
+
+## Notes
+
+- Run backend before frontend; frontend proxies `/api` to the backend by default.
+- If you change the backend route, set `VITE_LOOKUP_PATH` (e.g., `npm run demo` uses `/lookup/sample`).
+- ipstack plan must include **Connection** and **Time Zone** modules for the displayed fields.
+
+## Future Enhancements
+
+- Add automated tests (frontend hooks, backend endpoints).
+- Add toast notifications for errors and copy/share feedback.
+- Persist last successful payload for offline display.
+- Optional HTTPS reverse proxy configuration examples.
